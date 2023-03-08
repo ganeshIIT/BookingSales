@@ -40,7 +40,7 @@ def tranform_data(df_original):
 
     df_booked = df_booked.groupby(['MainDate', 'MarketName', 'SalesRepID', 'SalesRepName', 'WeekBooked', 'WeekNum',
         'SortOrder','FiscalYear',
-        ])[['hasBooked', 'hasCaxed', 'ProgramDuration', 'EnteredByUser', 'Excel Import', 'Website', 'Rank1-4', 'Rank5','Rank6-10']].sum().reset_index()
+        ])[['hasBooked', 'hasCaxed', 'ProgramDuration', 'EnteredByUser', 'Excel Import', 'Website', 'Rank1-4', 'Rank5','Rank6-10']].sum()
 
 
     df_caxed = (df_bookings[df_bookings['hasCaxed']==True]
@@ -56,27 +56,25 @@ def tranform_data(df_original):
 
     df_caxed = (df_caxed.groupby(['MainDate', 'MarketName', 'SalesRepID', 'SalesRepName', 'WeekBooked', 'WeekNum',
         'SortOrder','FiscalYear',
-        ])[['hasBooked', 'hasCaxed', 'ProgramDuration', 'EnteredByUser', 'Excel Import', 'Website', 'Rank1-4', 'Rank5','Rank6-10']].sum().reset_index()
-                .drop(['SalesRepName', 'WeekBooked','WeekNum','SortOrder','FiscalYear','hasBooked', 'hasCaxed'], axis=1)
+        ])[['hasBooked', 'hasCaxed', 'ProgramDuration', 'EnteredByUser', 'Excel Import', 'Website', 'Rank1-4', 'Rank5','Rank6-10']].sum()
+                .drop(['hasBooked', 'hasCaxed'], axis=1)
                 )
 
 
 
-    df_merged = (df_booked.set_index(['MainDate',	'MarketName',	'SalesRepID'])
-    .join (df_caxed.set_index(['MainDate',	'MarketName',	'SalesRepID']), how='left', rsuffix='_cax')
-    .assign(
-        # **{col : lambda _df: _df[col].fillna(0).astype('int16') 
-                #    for col in ['ProgramDuration_cax', 'EnteredByUser_cax', 'Excel Import_cax', 'Website_cax']}
-        ProgramDuration_cax = lambda _df: _df['ProgramDuration_cax'].fillna(0).astype('int16'),
-        EnteredByUser_cax = lambda _df: _df['EnteredByUser_cax'].fillna(0).astype('int16'),      
-        **{'Excel Import_cax' : lambda _df: _df['Excel Import_cax'].fillna(0).astype('int16')},    
-        Website_cax = lambda _df: _df['Website_cax'].fillna(0).astype('int16'),
-        **{'Rank1-4_cax' : lambda _df: _df['Rank1-4_cax'].fillna(0).astype('int16')},
-        **{'Rank5_cax' : lambda _df: _df['Rank1-4_cax'].fillna(0).astype('int16')},
-        **{'Rank6-10_cax' : lambda _df: _df['Rank1-4_cax'].fillna(0).astype('int16')},  
-    )
-    .rename(columns={'Excel Import_cax': 'ExcelImport_cax', 'Excel Import': 'ExcelImport'})
-    ).reset_index()
+    df_merged = (df_booked
+                    .merge (df_caxed, left_index=True, right_index=True, how='left', suffixes=('', '_cax'))
+                    .assign(
+                        ProgramDuration_cax = lambda _df: _df['ProgramDuration_cax'].fillna(0).astype('int16'),
+                        EnteredByUser_cax = lambda _df: _df['EnteredByUser_cax'].fillna(0).astype('int16'),      
+                        **{'Excel Import_cax' : lambda _df: _df['Excel Import_cax'].fillna(0).astype('int16')},    
+                        Website_cax = lambda _df: _df['Website_cax'].fillna(0).astype('int16'),
+                        **{'Rank1-4_cax' : lambda _df: _df['Rank1-4_cax'].fillna(0).astype('int16')},
+                        **{'Rank5_cax' : lambda _df: _df['Rank5_cax'].fillna(0).astype('int16')},
+                        **{'Rank6-10_cax' : lambda _df: _df['Rank6-10_cax'].fillna(0).astype('int16')},   
+                    )
+                    .rename(columns={'Excel Import_cax': 'ExcelImport_cax', 'Excel Import': 'ExcelImport'})
+                    ).reset_index()
     
     return df_merged
 

@@ -17,6 +17,8 @@ DTYPE_MAP = {
     "bool": "bit",
     "boolean": "bit",
     "Int64": "int",
+    "uint8": "int",
+    "int16": "int",
     # To do - map timedelta64[ns] to seconds or string
 }
 
